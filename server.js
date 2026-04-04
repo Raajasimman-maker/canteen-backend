@@ -5,23 +5,24 @@ const Invoice = require("./models/Invoice");
 
 const app = express();
 
-// Middleware
-app.use(cors({ origin: "*" })); // Allow all origins for dev
+/* ===========================
+   ✅ MIDDLEWARE
+=========================== */
+app.use(cors());
 app.use(express.json());
 
-// Request logging middleware
+// Logging (optional)
 app.use((req, res, next) => {
   console.log(`${new Date().toLocaleTimeString()} - ${req.method} ${req.url}`);
   next();
 });
 
 /* ===========================
-   ✅ MONGODB ATLAS CONNECTION
+   ✅ MONGODB CONNECTION (ENV)
 =========================== */
 
-// 🔥 Replace with YOUR Atlas DB name at end (/canteen)
-const MONGO_URI =
-  "mongodb+srv://graajasimman2006_db_user:admin123@cluster0.pzpb9ve.mongodb.net/canteen?retryWrites=true&w=majority";
+// 🔥 IMPORTANT: use ENV variable (for Render)
+const MONGO_URI = process.env.MONGO_URI;
 
 mongoose
   .connect(MONGO_URI)
@@ -64,7 +65,7 @@ app.get("/quotation/:id", async (req, res) => {
 =========================== */
 app.post("/save", async (req, res) => {
   try {
-    console.log("Incoming Data 👉", req.body); // DEBUG
+    console.log("Incoming Data 👉", req.body);
 
     const {
       partyName,
@@ -87,7 +88,7 @@ app.post("/save", async (req, res) => {
       description
     } = req.body;
 
-    // ✅ Basic validation
+    // Validation
     if (!partyName || !eventName || !date) {
       return res.status(400).send("Missing required fields ❌");
     }
@@ -107,7 +108,7 @@ app.post("/save", async (req, res) => {
       cgst,
       sgst,
       total,
-      grandTotal: total, // Map total to grandTotal for consistency
+      grandTotal: total,
       receivedAmount,
       previousBalance,
       currentBalance,
@@ -117,8 +118,8 @@ app.post("/save", async (req, res) => {
     await newInvoice.save();
 
     console.log("Saved to DB ✅");
-
     res.send("Saved successfully ✅");
+
   } catch (err) {
     console.error("SAVE ERROR ❌:", err);
     res.status(500).send(`Server Error: ${err.message} ❌`);
@@ -126,7 +127,7 @@ app.post("/save", async (req, res) => {
 });
 
 /* ===========================
-   ✅ DELETE QUOTATION (OPTIONAL)
+   ✅ DELETE QUOTATION
 =========================== */
 app.delete("/quotation/:id", async (req, res) => {
   try {
@@ -141,7 +142,10 @@ app.delete("/quotation/:id", async (req, res) => {
 /* ===========================
    ✅ SERVER START
 =========================== */
-const PORT = 5000;
+
+// 🔥 IMPORTANT for Render
+const PORT = process.env.PORT || 5000;
+
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT} 🚀`);
+  console.log(`Server running on port ${PORT} 🚀`);
 });
